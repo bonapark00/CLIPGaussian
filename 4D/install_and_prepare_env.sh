@@ -1,6 +1,7 @@
 mkdir models
 cd models
-git clone git@github.com:waczjoan/D-MiSo.git --recursive  dmisomodel
+# git clone git@github.com:waczjoan/D-MiSo.git --recursive  dmisomodel
+git clone https://github.com/waczjoan/D-MiSo.git --recursive  dmisomodel
 cd dmisomodel
 sh install.sh
 cd ..
