@@ -37,7 +37,7 @@ from models.dmisomodel.utils.loss_utils import l1_loss # type: ignore
 
 
 try:
-    from torch.utils.tensorboard import SummaryWriter
+    from torch.utils.tensorboard.writer import SummaryWriter
 
     TENSORBOARD_FOUND = True
 except ImportError:
@@ -85,7 +85,7 @@ def training(dataset, opt, pipe, args):
             source_features = clip_model.encode_image(clip_normalize(gt_image.unsqueeze(0)))
             source_features /= (source_features.clone().norm(dim=-1, keepdim=True))
             cam.features = get_features(img_normalize(gt_image), VGG)
-            cam.original_image = source_features
+            cam.source_features = source_features
 
     bg_color = [1, 1, 1] if dataset.white_background else [0, 0, 0]
     bg = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
@@ -166,7 +166,7 @@ def training(dataset, opt, pipe, args):
             render_pkg["visibility_filter"], render_pkg["radii"]
 
             # Content Loss
-            gt_image = viewpoint_cam.original_image.cuda()
+            source_features = viewpoint_cam.source_features.cuda()
             gt_features = viewpoint_cam.features
             render_features = get_features(img_normalize(image), VGG)
             loss_c = 0
@@ -190,7 +190,6 @@ def training(dataset, opt, pipe, args):
             image_features = clip_model.encode_image(clip_normalize(img_proc))
             image_features /= (image_features.clone().norm(dim=-1, keepdim=True))
 
-            source_features = gt_image
             img_direction = (image_features - source_features)
             img_direction /= img_direction.clone().norm(dim=-1, keepdim=True)
 
@@ -233,10 +232,10 @@ def training(dataset, opt, pipe, args):
                 progress_bar.close()
 
             # Log and save
-            cur_psnr = training_report(tb_writer, iteration, loss_d, loss, l1_loss,
-                                       iter_start.elapsed_time(iter_end),
-                                       testing_iterations, scene, render, (pipe, bg), deform,
-                                       dataset.load2gpu_on_the_fly, dataset.is_6dof)
+            # cur_psnr = training_report(tb_writer, iteration, loss_d, loss, l1_loss,
+            #                            iter_start.elapsed_time(iter_end),
+            #                            testing_iterations, scene, render, (pipe, bg), deform,
+            #                            dataset.load2gpu_on_the_fly, dataset.is_6dof)
 
             if iteration in saving_iterations:
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
