@@ -30,12 +30,15 @@ class ParamGroup:
             value = value if not fill_none else None
             if shorthand:
                 if t == bool:
-                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, action="store_true")
+                    group.add_argument(
+                        "--" + key, ("-" + key[0:1]), default=value, action="store_true")
                 else:
-                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, type=t)
+                    group.add_argument(
+                        "--" + key, ("-" + key[0:1]), default=value, type=t)
             else:
                 if t == bool:
-                    group.add_argument("--" + key, default=value, action="store_true")
+                    group.add_argument(
+                        "--" + key, default=value, action="store_true")
                 else:
                     group.add_argument("--" + key, default=value, type=t)
 
@@ -53,17 +56,12 @@ class ModelParams(ParamGroup):
         self._source_path = ""
         self._model_path = ""
         self._images = "images"
+        self._depths = ""
         self._resolution = -1
         self._white_background = False
+        self.train_test_exp = False
         self.data_device = "cuda"
         self.eval = False
-        self.load2gpu_on_the_fly = False
-        self.is_blender = False
-        self.is_6dof = False
-        self.num_splat = 500
-        self.num_gauss = 2000
-        self.deform_depth = 8
-        self.deform_width = 256
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):
@@ -77,44 +75,39 @@ class PipelineParams(ParamGroup):
         self.convert_SHs_python = False
         self.compute_cov3D_python = False
         self.debug = False
+        self.antialiasing = False
         super().__init__(parser, "Pipeline Parameters")
 
 
 class OptimizationParams(ParamGroup):
     def __init__(self, parser):
-        self.iterations = 5_000
-        self.warm_up = 0
-        self.position_lr_init = 0.00001
+        self.iterations = 30_000
+        self.position_lr_init = 0.0001
         self.position_lr_final = 0.000001
         self.position_lr_delay_mult = 0.01
-        self.position_lr_max_steps = 5_000
-        self.pseudomesh_lr_init = 0.00001
-        self.pseudomesh_lr_final = 0.000001
-        self.pseudomesh_lr_delay_mult = 0.01
-        self.pseudomesh_lr_max_steps = 5_000
-        self.deform_lr_max_steps = 5_000
-        self.feature_lr = 0.0025
-        self.attached_feature_lr = 0.0025
-        self.opacity_lr = 0.0
-        self.attached_opacity_lr = 0.05
-        self.scaling_lr = 0.001
+        self.position_lr_max_steps = 30_000
+        self.feature_lr = 0.01
+        self.opacity_lr = 0.05
+        self.scaling_lr = 0.005
         self.rotation_lr = 0.001
+        self.exposure_lr_init = 0.01
+        self.exposure_lr_final = 0.001
+        self.exposure_lr_delay_steps = 0
+        self.exposure_lr_delay_mult = 0.0
         self.percent_dense = 0.01
         self.lambda_dssim = 0.2
-        self.gamma = 0
         self.densification_interval = 100
         self.opacity_reset_interval = 3000
-        self.densify_from_iter = 0
-        self.densify_until_iter = 0
+        self.densify_from_iter = 500
+        self.densify_until_iter = 15_000
         self.densify_grad_threshold = 0.0002
-        self.alpha_lr = 0.001
         self.random_background = False
         self.lambda_c = 0.8
         self.lambda_dir = 5
         self.lambda_patch = 90
+        self.lambda_bg = 1000
         self.crop_size = 128
-        self.lambda_bg = 0
-        self.num_crops = 32
+        self.num_crops = 64
         super().__init__(parser, "Optimization Parameters")
 
 
@@ -138,34 +131,4 @@ def get_combined_args(parser: ArgumentParser):
     for k, v in vars(args_cmdline).items():
         if v != None:
             merged_dict[k] = v
-    return Namespace(**merged_dict)
-
-def get_combined_args_force(parser: ArgumentParser):
-    cmdlne_string = sys.argv[1:]
-    cfgfile_string = "Namespace()"
-    args_cmdline = parser.parse_args(cmdlne_string)
-
-    try:
-        cfgfilepath = os.path.join(args_cmdline.model_output, "cfg_args")
-        print("Looking for config file in", cfgfilepath)
-        with open(cfgfilepath) as cfg_file:
-            print("Config file found: {}".format(cfgfilepath))
-            cfgfile_string = cfg_file.read()
-    except TypeError:
-        print("Config file not found at")
-        pass
-    args_cfgfile = eval(cfgfile_string)
-
-    merged_dict = vars(args_cmdline).copy()
-    for k, v in vars(args_cfgfile).items():
-        if v != None:
-            merged_dict[k] = v
-
-    merged_dict["model_path"] = args_cmdline.model_path
-    if args_cmdline.source_path != None:
-        merged_dict["source_path"] = args_cmdline.source_path
-    if args_cmdline.resolution != None:
-        merged_dict["resolution"] = args_cmdline.resolution
-    if args_cmdline.data_device != None:
-        merged_dict["data_device"] = args_cmdline.data_device
     return Namespace(**merged_dict)

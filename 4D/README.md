@@ -18,12 +18,12 @@
 
 ```shell
 # SSH
-git clone git@github.com:kornelhowil/CLIPGaussians.git
+git clone git@github.com:kornelhowil/CLIPGaussian.git
 ```
 or
 ```shell
 # HTTPS
-git clone https://github.com/kornelhowil/CLIPGaussians.git
+git clone https://github.com/kornelhowil/CLIPGaussian.git
 ```
 
 To install the required Python packages we used 3.8 python
@@ -65,7 +65,7 @@ We propose two setup scenarios:
 
 In this tutorial, we’ll demonstrate the second approach.
 
-Open command line in ..../CLIPGaussians/4D and run:
+Open command line in ..../CLIPGaussian/4D and run:
 ```shell
 sh install_and_prepare_env.sh
 ```
@@ -121,7 +121,7 @@ We have:
     - dataset (images and camera info in case of blender dataset) in `data/trex`
     - reconstruction object model created using Gaussian-Splatting based model D-MiSo in `output/trex`
 
-We would like to created styled object trex by prompt `wood` using `output/trex`. New styled model will be saved in `output_styled/trex`:
+We would like to created styled object trex by prompt `wood` using `output/trex`. New styled model will be saved in `output_style/trex`:
 
 ```shell
 python train_style.py -s data/trex -m output_style/trex  --model_output output/trex --batch 4 --iterations 5000 --batch 4 --style_prompt "Wood" -w
@@ -158,7 +158,7 @@ export PYTHONPATH=.
 python render.py  -m path/4D/output_style/trex_wood --iteration 5000 
  ```
 
-In `output/jumpingjacks` you should find: 
+In `output_style/trex_wood` you should find: 
 ```
 <4D>
 |---data
